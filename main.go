@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/dsa"
 	randez "crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -22,7 +21,7 @@ const (
 )
 
 var (
-	currentKey *dsa.PrivateKey
+	currentKey *PrivateKey
 )
 
 func main() {
@@ -245,12 +244,12 @@ func generatePrime(bits int) (*big.Int, []*big.Int, error) {
 	}
 }
 
-func generateDSAParameters() (*dsa.Parameters, error) {
+func generateDSAParameters() (*Parameters, error) {
 	// Создаем новый объект для параметров DSA
-	params := new(dsa.Parameters)
+	params := new(Parameters)
 
 	// Генерируем параметры DSA
-	err := dsa.GenerateParameters(params, randez.Reader, dsa.L1024N160)
+	err := GenerateParameters(params, randez.Reader, L1024N160)
 	if err != nil {
 		return nil, err
 	}
@@ -259,11 +258,11 @@ func generateDSAParameters() (*dsa.Parameters, error) {
 }
 
 // Функция для генерации ключей DSA
-func generateDSAKeys(params *dsa.Parameters) (*dsa.PrivateKey, error) {
-	privateKey := new(dsa.PrivateKey)
+func generateDSAKeys(params *Parameters) (*PrivateKey, error) {
+	privateKey := new(PrivateKey)
 	privateKey.Parameters = *params
 
-	err := dsa.GenerateKey(privateKey, randez.Reader)
+	err := GenerateKey(privateKey, randez.Reader)
 	if err != nil {
 		return nil, err
 	}
@@ -271,10 +270,10 @@ func generateDSAKeys(params *dsa.Parameters) (*dsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func signMessage(privateKey *dsa.PrivateKey, message []byte) (r, s *big.Int, err error) {
+func signMessage(privateKey *PrivateKey, message []byte) (r, s *big.Int, err error) {
 	hashedMessage := sha256.Sum256(message)
 
-	r, s, err = dsa.Sign(randez.Reader, privateKey, hashedMessage[:])
+	r, s, err = Sign(randez.Reader, privateKey, hashedMessage[:])
 	if err != nil {
 		return nil, nil, err
 	}
@@ -282,10 +281,10 @@ func signMessage(privateKey *dsa.PrivateKey, message []byte) (r, s *big.Int, err
 	return r, s, nil
 }
 
-func verifySignature(publicKey *dsa.PublicKey, message []byte, r, s *big.Int) bool {
+func verifySignature(publicKey *PublicKey, message []byte, r, s *big.Int) bool {
 	hashedMessage := sha256.Sum256(message)
 
-	return dsa.Verify(publicKey, hashedMessage[:], r, s)
+	return Verify(publicKey, hashedMessage[:], r, s)
 }
 
 func encrypt(text string, key []byte) (string, error) {
